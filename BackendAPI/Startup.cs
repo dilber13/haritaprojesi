@@ -1,5 +1,9 @@
 using BackendAPI.Business;
+using BackendAPI.Business.Abstract;
+using BackendAPI.Business.Concrete;
 using BackendAPI.DataAccess;
+using BackendAPI.DataAccess.Abstract;
+using BackendAPI.DataAccess.Concrete;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,18 +33,33 @@ namespace BackendAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Controller desteðini ekler
+            // Controller desteÄŸini ekler
             services.AddControllers();
+            services.AddControllersWithViews()
+                .AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+            // Swagger/OpenAPI desteÄŸini ekler
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Tasinmaz API",
+                    Version = "v1",
+                    Description = "Tasinmaz YÃ¶netim API'si"
+                });
+                c.UseInlineDefinitionsForEnums();
+            });
 
-            // Swagger/OpenAPI desteðini ekler
-            services.AddSwaggerGen();
+            // PostgreSQL baÄŸlantÄ±sÄ±
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-            // Veritabaný baðlantýsýný ekle (AppDbContext)
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            #region Dependency Injection
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<ITasinmazService, TasinmazService>();
+            #endregion
 
-            // Ýþ mantýðý servislerini ekle
-            services.AddScoped<TasinmazService>();
         }
 
 
@@ -53,10 +72,16 @@ namespace BackendAPI
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseAuthorization();
+
+            // Swagger
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tasinmaz API V1");
+                c.RoutePrefix = string.Empty;
+            });
 
             app.UseEndpoints(endpoints =>
             {

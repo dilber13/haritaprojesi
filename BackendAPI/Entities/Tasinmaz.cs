@@ -1,9 +1,13 @@
-﻿namespace BackendAPI.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BackendAPI.Entities
 {
     public class Tasinmaz
     {
         public int Id { get; set; }
+
         public string Ad { get; set; }
+
         public int MahalleId { get; set; }
         public int Ada { get; set; } // Ada numarası
         public int Parsel { get; set; } // Parsel numarası
