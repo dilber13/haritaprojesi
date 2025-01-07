@@ -58,6 +58,9 @@ namespace BackendAPI
             #region Dependency Injection
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<ITasinmazService, TasinmazService>();
+            services.AddScoped<IIlService, IlService>();
+            services.AddScoped<IIlceService, IlceService>();
+            services.AddScoped<IMahalleService, MahalleService>();
             #endregion
 
         }
